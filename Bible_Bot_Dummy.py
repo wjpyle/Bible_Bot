@@ -6,7 +6,7 @@ bot = praw.Reddit(user_agent = '', client_id = '',
                   username = '', password = '')
 
 #Create the subreddit object
-subreddit = bot.subreddit('TestingdaBot')
+subreddit = bot.subreddit('TestingdaBot') #This is my test subreddit
 
 #Create the comments object
 comments = subreddit.stream.comments()
@@ -80,16 +80,19 @@ for comment in comments:
         #Here we encounter our first instance of a pair of Bible verses
         #that have the same name and are differentiated by a number. Here,
         #for example, we deal with two verses respectively called 1 Samuel
-        #and 2 Samuel. This block of code 
+        #and 2 Samuel.
+        #The same method shown here for determining which chapter the commenter
+        #is referencing is also used later on in the code for other chapters
+        #that are split into multiple numbered sections.
         i = 0
         while split_text[i].lower() != 'samuel':
             i = i + 1
         i = i - 1
-        if split_text[i] == "1":
+        if split_text[i] == "1": # If the comment refers to 1 Samuel
             name = 'samuel'
             urlname = '1-samuel'
             chapnum = 31
-        elif split_text[i] == "2":
+        elif split_text[i] == "2": # If the comment refers to 2 Samuel
             name = 'samuel'
             urlname = '2-samuel'
             chapnum = 24
@@ -462,35 +465,82 @@ for comment in comments:
 
 
     if name != "" and ('kingjamesbibleonline' not in text.lower()):
+        # If a Bible chapter/verse has been referenced and the comment is not
+        # one that this bot has already made
 
         n = 0
         while (n < split_length) and (split_text[n].lower() != name):
+            #Find the chapter name in the comment
             n = n + 1
 
         if (n + 2) <= split_length:
+            #If the name is referenced at the end of the comment, there is
+            #no room for a chapter or verse number so the code stops running.
+            #If that is not the case, the code focuses in on the string right
+            #after the name and names it possnum.
             possnum = split_text[n + 1]
 
-            if possnum[0].isdigit():
-                if len(possnum) > 2  and possnum[1].isdigit() and possnum[2].isdigit():
-                    num = 100
-                elif (len(possnum) == 1) or (len(possnum) >= 2 and not possnum[1].isdigit()):
-                    num = int(possnum[0])
-                elif len(possnum) >= 2 and possnum[1].isdigit():
-                    num = int(possnum[0]) * 10 + int(possnum[1])
-                """else if len(possnum) > 2 and not possnum[1].isdigit():
-                if len(possnum) > 2 and possnum[1].isdigit() and not (possnum[2].isdigit()):
-                    num = int(possnum[0]) * 10 + int(possnum[1])
-                elif len (possnum) not (possnum[1].isdigit()):
-                    num = int(possnum[0])
-                    
+            if possnum[0].isdigit(): #If the string segment right after the
+                #name is a number
+                if name != "psalms": #psalms is the only book with a
+                    #three-digit number of chapters, so we make it a special
+                    #case.
+                    if len(possnum) > 2  and possnum[1].isdigit() and possnum[2].isdigit():
+                        #If the length of the possible number is greater than 2 and the second
+                        #and third places in the number are digits, then the commenter
+                        #must be referencing a chapter that doesn't exist since no book has
+                        #a three-digit number of chapters (except for psalms, which we
+                        #filtered out earlier).
+                        num = 10000
+                    elif (len(possnum) == 1) or (len(possnum) >= 2 and not possnum[1].isdigit()):
+                        #If the possible number only has one digit or if it is longer but
+                        #the second place in the possible number is not a digit (i.e. a colon
+                        #or period), then the first digit is considered the full chapter number
+                        num = int(possnum[0])
+                    elif len(possnum) >= 2 and possnum[1].isdigit():
+                        #If the possible number is longer and the second place is a digit, then
+                        #the first and second places are considered the full chapter number.
+                        num = int(possnum[0]) * 10 + int(possnum[1])
+                elif name == "psalms": #psalms is a special case since it has over 100 chapters
+                    if len(possnum) > 3 and possnum[1].isdigit() and possnum[2].isdigit() and possnum[3].isdigit():
+                        #If the first four places of possnum are numbers, then the commenter mentioned
+                        #a chapter that doesn't exist
+                        num = 10000
+                    elif (len(possnum) == 1) or (len(possnum)) >= 2 and not possnum[1].isdigit()):
+                        #If the length of possnum is one or if the length is longer and the second
+                        #place is not a digit, then only the first place is considered the chapter
+                        #number
+                        num = int(possnum[0])
+                    elif len(possnum) >= 2 and possnum[1].isdigit() and not possnum[2].isdigit():
+                        #If the length of possnum is longer and the first and second places are digits
+                        #but not the third, then the first two places are considered the chapter number.
+                        num = int(possnum[0] * 10 + int(possnum[1]))
+                    elif len(possnum) >= 2 and possnum[1].isdigit() and possnum[2].isdigit():
+                        #If the length is longer and the first, second, and third places are digits
+                        #then the first three places are considered the chapter number.
+                        num = int(possnum[0]) * 100 + int(possnum[1]) * 10 + int(possnum[2])
+                                  
+                                  
+                       
+                    """else if len(possnum) > 2 and not possnum[1].isdigit():
+                    if len(possnum) > 2 and possnum[1].isdigit() and not (possnum[2].isdigit()):
+                        num = int(possnum[0]) * 10 + int(possnum[1])
+                    elif len (possnum) not (possnum[1].isdigit()):
+                        num = int(possnum[0])
+                        
     """ 
                 if num <= chapnum:
+                    #If the found number is less than or equal to the number of chapters in the mentioned verse,
+                    #the chapter is assumed to exist.
+                    #Here, we form the final URL to be posted.
                     message = "Hi! It looks like you included a Bible or Torah verse in your comment. Here is a link to that verse as it is written in the King James Bible:   " + ("https://www.kingjamesbibleonline.org/" + urlname +
                     "-chapter-" + str(num)).format(author)
-        
-                    comment.reply(message)
 
-                    print("yiss")
+                    #Reply to the comment
+                    comment.reply(message)
+                    
+                    #Print to see when we reply
+                    print("success!")
 
         
 
