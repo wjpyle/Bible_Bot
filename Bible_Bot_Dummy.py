@@ -6,7 +6,7 @@ bot = praw.Reddit(user_agent = '', client_id = '',
                   username = '', password = '')
 
 #Create the subreddit object
-subreddit = bot.subreddit('TestingdaBot') #This is my test subreddit
+subreddit = bot.subreddit('')
 
 #Create the comments object
 comments = subreddit.stream.comments()
