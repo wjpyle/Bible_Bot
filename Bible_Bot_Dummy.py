@@ -506,7 +506,7 @@ for comment in comments:
                         #If the first four places of possnum are numbers, then the commenter mentioned
                         #a chapter that doesn't exist
                         num = 10000
-                    elif (len(possnum) == 1) or (len(possnum)) >= 2 and not possnum[1].isdigit()):
+                    elif (len(possnum) == 1) or (len(possnum)) >= 2 and not possnum[1].isdigit():
                         #If the length of possnum is one or if the length is longer and the second
                         #place is not a digit, then only the first place is considered the chapter
                         #number
@@ -533,7 +533,7 @@ for comment in comments:
                     #If the found number is less than or equal to the number of chapters in the mentioned verse,
                     #the chapter is assumed to exist.
                     #Here, we form the final URL to be posted.
-                    message = "Hi! It looks like you included a Bible or Torah verse in your comment. Here is a link to that verse as it is written in the King James Bible:   " + ("https://www.kingjamesbibleonline.org/" + urlname +
+                    message = "Hi! It looks like you included a Bible or Torah chapter in your comment. Here is a link to that chapter as it is written in the King James Bible:   " + ("https://www.kingjamesbibleonline.org/" + urlname +
                     "-chapter-" + str(num)).format(author)
 
                     #Reply to the comment
@@ -541,14 +541,3 @@ for comment in comments:
                     
                     #Print to see when we reply
                     print("success!")
-
-        
-
-
-
-
-
-          
-
-        
-    
